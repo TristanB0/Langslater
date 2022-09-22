@@ -5,6 +5,7 @@ from os import getenv
 import discord
 import requests
 from discord import app_commands
+from discord.app_commands import Choice
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,7 +14,7 @@ deepl_auth_key = getenv("DEEPL_AUTH_KEY")
 
 con = sqlite3.connect("database.db3")
 cur = con.cursor()
-cur.execute("drop table user;")    # for debugging only
+# cur.execute("drop table languages;")    # for debugging only
 cur.execute("""CREATE TABLE IF NOT EXISTS languages (
                 guild_id INTEGER NOT NULL,
 				language VARCHAR NOT NULL,
@@ -25,6 +26,22 @@ class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
 
+    async def on_ready(self):
+        await self.wait_until_ready()
+
+        print("Logged on as {0}".format(self.user))
+
+        await self.change_presence(activity=discord.Game("to translate... /help"))
+    
+    async def on_disconnect(self):
+        print("Disconnected from discord")
+
+    async def on_message(self, message):
+        if message.author.id == self.user.id:
+            return
+
+        # Translation tests here
+
 
 intents = discord.Intents.none()
 intents.guilds = True
@@ -34,6 +51,7 @@ client = MyClient(intents=intents)
 
 tree = app_commands.CommandTree(client)
 
+
 @tree.command(name="help", description="Get help")
 async def help(interaction: discord.Interaction):
     await interaction.response.send_message("""
@@ -41,3 +59,40 @@ async def help(interaction: discord.Interaction):
     /set_languages [string] - Set the languages for which the bot will NOT translate the message \n
     Made by Tristan BONY --> https://www.tristanbony.me
     """, ephemeral=True)
+
+
+@tree.command(name="set_languages", description="Set the languages you don't want to be translated")
+@app_commands.choices(language=[
+    Choice(name="Bulgarian", value="BG"),
+    Choice(name="Chinese", value="ZH"),
+    Choice(name="Czech", value="CS"),
+    Choice(name="Danish", value="DA"),
+    Choice(name="Dutch", value="NL"),
+    Choice(name="English", value="EN"),
+    Choice(name="Estonian", value="ET"),
+    Choice(name="Finnish", value="FI"),
+    Choice(name="French", value="FR"),
+    Choice(name="German", value="GE"),
+    Choice(name="Greek", value="EL"),
+    Choice(name="Hungarian", value="HU"),
+    Choice(name="Indonesian", value="ID"),
+    Choice(name="Italian", value="IT"),
+    Choice(name="Japanese", value="JA"),
+    Choice(name="Latvian", value="LV"),
+    Choice(name="Lithuanian", value="LT"),
+    Choice(name="Polish", value="PL"),
+    Choice(name="Portuguese", value="PT"),
+    Choice(name="Romanian", value="RO"),
+    Choice(name="Russian", value="RU"),
+    Choice(name="Slovak", value="SK"),
+    Choice(name="Slovenian", value="SL"),
+    Choice(name="Spanish", value="ES"),
+    Choice(name="Swedish", value="SV"),
+    Choice(name="Turkish", value="TR"),
+    Choice(name="Ukrainian", value="UK"),
+])
+async def set_languages(interaction: discord.Interaction):
+    # Add into DB
+    await interaction.response.send_message("You have added {0} languages.".format())
+
+client.run(discord_token)
