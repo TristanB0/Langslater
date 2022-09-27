@@ -3,7 +3,7 @@ import sqlite3
 from os import getenv
 
 import discord
-import requests
+import deepl
 from discord import app_commands
 from discord.app_commands import Choice
 from dotenv import load_dotenv
@@ -20,6 +20,8 @@ cur.execute("""CREATE TABLE IF NOT EXISTS languages (
 				language VARCHAR NOT NULL,
                 PRIMARY KEY (guild_id));""")
 con.commit()
+
+translator = deepl.Translator(deepl_auth_key)
 
 
 class MyClient(discord.Client):
@@ -40,8 +42,11 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        # Translation tests here
+        cur.execute("SELECT language FROM languages WHERE guild_id = ?", message.guild.id)
+        translation_language = cur.fetchone()
+        text_translated = translator.translate_text(message.content, target=translation_language)
 
+        await message.reply("""This user said: \n\n""" + text_translated)
 
 intents = discord.Intents.none()
 intents.guilds = True
@@ -93,6 +98,6 @@ async def help(interaction: discord.Interaction):
 ])
 async def set_languages(interaction: discord.Interaction):
     # Add into DB
-    await interaction.response.send_message("You have added {0} languages.".format())
+    await interaction.response.send_message("You have added {0} languages.".format(), ephemeral=True)
 
 client.run(discord_token)
