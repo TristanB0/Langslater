@@ -1,5 +1,6 @@
 import asyncio
 import sqlite3
+import sys
 from os import getenv
 
 import discord
@@ -12,14 +13,17 @@ load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
 deepl_auth_key = getenv("DEEPL_AUTH_KEY")
 
-con = sqlite3.connect("database.db3")
-cur = con.cursor()
-# cur.execute("drop table languages;")    # for debugging only
-cur.execute("""CREATE TABLE IF NOT EXISTS languages (
-                guild_id INTEGER NOT NULL,
-				language VARCHAR NOT NULL,
-                PRIMARY KEY (guild_id));""")
-con.commit()
+try:
+    con = sqlite3.connect("database.db3")
+    cur = con.cursor()
+    # cur.execute("drop table languages;")    # for debugging only
+    cur.execute("""CREATE TABLE IF NOT EXISTS languages (
+                    guild_id INTEGER NOT NULL,
+    				language VARCHAR NOT NULL,
+                    PRIMARY KEY (guild_id));""")
+    con.commit()
+except:
+    sys.exit("Error on databse initialization")
 
 translator = deepl.Translator(deepl_auth_key)
 
@@ -27,10 +31,13 @@ translator = deepl.Translator(deepl_auth_key)
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
+        self.synced = False
 
     async def on_ready(self):
         await self.wait_until_ready()
-
+        if not self.synced:
+            await tree.sync()
+            self.synced = True
         print("Logged on as {0}".format(self.user))
 
         await self.change_presence(activity=discord.Game("to translate... /help"))
@@ -62,10 +69,11 @@ async def help(interaction: discord.Interaction):
     await interaction.response.send_message("""
     /help - Show this message \n
     /set_languages [string] - Set the languages for which the bot will NOT translate the message \n
-    Made by Tristan BONY --> https://www.tristanbony.me
+    Made by Tristan Bony --> https://www.tristanbony.me
     """, ephemeral=True)
+    return None
 
-
+"""
 @tree.command(name="set_languages", description="Set the languages you don't want to be translated")
 @app_commands.choices(language=[
     Choice(name="Bulgarian", value="BG"),
@@ -94,10 +102,10 @@ async def help(interaction: discord.Interaction):
     Choice(name="Spanish", value="ES"),
     Choice(name="Swedish", value="SV"),
     Choice(name="Turkish", value="TR"),
-    Choice(name="Ukrainian", value="UK"),
+    Choice(name="Ukrainian", value="UK")
 ])
 async def set_languages(interaction: discord.Interaction):
     # Add into DB
     await interaction.response.send_message("You have added {0} languages.".format(), ephemeral=True)
-
+"""
 client.run(discord_token)
