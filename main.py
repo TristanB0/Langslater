@@ -49,7 +49,7 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        cur.execute("SELECT language FROM languages WHERE guild_id = ?", message.guild.id)
+        cur.execute("SELECT language FROM languages WHERE guild_id = ?;", message.guild.id)
         translation_language = cur.fetchone()
         text_translated = translator.translate_text(message.content, target=translation_language)
 
@@ -73,8 +73,8 @@ async def help(interaction: discord.Interaction):
     """, ephemeral=True)
     return None
 
-"""
-@tree.command(name="set_languages", description="Set the languages you don't want to be translated")
+"""Limit to 25 languages"""
+@tree.command(name="set_language", description="Set the language you don't want to be translated")
 @app_commands.choices(language=[
     Choice(name="Bulgarian", value="BG"),
     Choice(name="Chinese", value="ZH"),
@@ -104,8 +104,10 @@ async def help(interaction: discord.Interaction):
     Choice(name="Turkish", value="TR"),
     Choice(name="Ukrainian", value="UK")
 ])
-async def set_languages(interaction: discord.Interaction):
-    # Add into DB
-    await interaction.response.send_message("You have added {0} languages.".format(), ephemeral=True)
-"""
+async def set_language(interaction: discord.Interaction, language: Choice[str]):
+    cur.execute("INSERT OR REPLACE INTO languages (guild_id, language) VALUES (?, ?);", (interaction.guild.id, language))
+    con.commit()
+
+    await interaction.response.send_message("You have added {0} language.".format(language), ephemeral=True)
+
 client.run(discord_token)
