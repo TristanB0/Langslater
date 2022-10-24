@@ -1,6 +1,4 @@
-import asyncio
 import sqlite3
-import sys
 from os import getenv
 
 import discord
@@ -13,17 +11,15 @@ load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
 deepl_auth_key = getenv("DEEPL_AUTH_KEY")
 
-try:
-    con = sqlite3.connect("database.db3")
-    cur = con.cursor()
-    # cur.execute("drop table languages;")    # for debugging only
-    cur.execute("""CREATE TABLE IF NOT EXISTS languages (
-                    guild_id INTEGER NOT NULL,
-    				language VARCHAR NOT NULL,
-                    PRIMARY KEY (guild_id));""")
-    con.commit()
-except:
-    sys.exit("Error on databse initialization")
+
+con = sqlite3.connect("database.db3")
+cur = con.cursor()
+# cur.execute("drop table languages;")    # for debugging only
+cur.execute("""CREATE TABLE IF NOT EXISTS languages (
+                guild_id INTEGER NOT NULL,
+                language VARCHAR NOT NULL,
+                PRIMARY KEY (guild_id));""")
+con.commit()
 
 translator = deepl.Translator(deepl_auth_key)
 
@@ -41,7 +37,7 @@ class MyClient(discord.Client):
         print("Logged on as {0}".format(self.user))
 
         await self.change_presence(activity=discord.Game("to translate... /help"))
-    
+
     async def on_disconnect(self):
         print("Disconnected from discord")
 
@@ -51,9 +47,10 @@ class MyClient(discord.Client):
 
         cur.execute("SELECT language FROM languages WHERE guild_id = ?;", message.guild.id)
         translation_language = cur.fetchone()
-        text_translated = translator.translate_text(message.content, target=translation_language)
+        text_translated = translator.translate_text(message.content, target_lang=translation_language)
 
-        await message.reply("""This user said: \n\n""" + text_translated)
+        await message.reply("""This user said: \n\n""" + text_translated.text)
+
 
 intents = discord.Intents.none()
 intents.guilds = True
@@ -73,7 +70,7 @@ async def help(interaction: discord.Interaction):
     """, ephemeral=True)
     return None
 
-"""Limit to 25 languages"""
+
 @tree.command(name="set_language", description="Set the language you don't want to be translated")
 @app_commands.choices(language=[
     Choice(name="Bulgarian", value="BG"),
@@ -82,7 +79,7 @@ async def help(interaction: discord.Interaction):
     Choice(name="Danish", value="DA"),
     Choice(name="Dutch", value="NL"),
     Choice(name="English", value="EN"),
-    Choice(name="Estonian", value="ET"),
+    # Choice(name="Estonian", value="ET"),
     Choice(name="Finnish", value="FI"),
     Choice(name="French", value="FR"),
     Choice(name="German", value="GE"),
@@ -91,7 +88,7 @@ async def help(interaction: discord.Interaction):
     Choice(name="Indonesian", value="ID"),
     Choice(name="Italian", value="IT"),
     Choice(name="Japanese", value="JA"),
-    Choice(name="Latvian", value="LV"),
+    # Choice(name="Latvian", value="LV"),
     Choice(name="Lithuanian", value="LT"),
     Choice(name="Polish", value="PL"),
     Choice(name="Portuguese", value="PT"),
@@ -105,9 +102,11 @@ async def help(interaction: discord.Interaction):
     Choice(name="Ukrainian", value="UK")
 ])
 async def set_language(interaction: discord.Interaction, language: Choice[str]):
-    cur.execute("INSERT OR REPLACE INTO languages (guild_id, language) VALUES (?, ?);", (interaction.guild.id, language))
+    cur.execute("INSERT OR REPLACE INTO languages (guild_id, language) VALUES (?, ?);",
+                (interaction.guild.id, language))
     con.commit()
 
     await interaction.response.send_message("You have added {0} language.".format(language), ephemeral=True)
+
 
 client.run(discord_token)
