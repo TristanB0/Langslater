@@ -43,11 +43,16 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
+            print("Ignoring message from myself")
             return
 
+        print("In on_message()")
         cur.execute("SELECT language FROM languages WHERE guild_id = ?;", message.guild.id)
         translation_language = cur.fetchone()
+        print(translation_language)
         text_translated = translator.translate_text(message.content, target_lang=translation_language)
+        print(text_translated)
+        print(text_translated.text)
 
         await message.reply("""This user said: \n\n""" + text_translated.text)
 
@@ -68,7 +73,6 @@ async def help(interaction: discord.Interaction):
     /set_languages [string] - Set the languages for which the bot will NOT translate the message \n
     Made by Tristan Bony --> https://www.tristanbony.me
     """, ephemeral=True)
-    return None
 
 
 @tree.command(name="set_language", description="Set the language you don't want to be translated")
@@ -102,11 +106,10 @@ async def help(interaction: discord.Interaction):
     Choice(name="Ukrainian", value="UK")
 ])
 async def set_language(interaction: discord.Interaction, language: Choice[str]):
-    cur.execute("INSERT OR REPLACE INTO languages (guild_id, language) VALUES (?, ?);",
-                (interaction.guild.id, language))
+    cur.execute("INSERT OR REPLACE INTO languages (guild_id, language) VALUES (?, ?);", (interaction.guild.id, language.value))
     con.commit()
 
-    await interaction.response.send_message("You have added {0} language.".format(language), ephemeral=True)
+    await interaction.response.send_message("You have added {0} language.".format(language.name), ephemeral=True)
 
 
 client.run(discord_token)
