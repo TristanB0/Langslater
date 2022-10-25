@@ -43,16 +43,11 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
-            print("Ignoring message from myself")
             return
 
-        print("In on_message()")
-        cur.execute("SELECT language FROM languages WHERE guild_id = ?;", message.guild.id)
+        cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
         translation_language = cur.fetchone()
-        print(translation_language)
-        text_translated = translator.translate_text(message.content, target_lang=translation_language)
-        print(text_translated)
-        print(text_translated.text)
+        text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
 
         await message.reply("""This user said: \n\n""" + text_translated.text)
 
@@ -60,6 +55,7 @@ class MyClient(discord.Client):
 intents = discord.Intents.none()
 intents.guilds = True
 intents.message_content = True
+intents.messages = True
 
 client = MyClient(intents=intents)
 
