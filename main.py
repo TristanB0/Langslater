@@ -45,11 +45,14 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
+        # Get the translation language of the server
         cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
         translation_language = cur.fetchone()
+
         text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
 
-        await message.reply("""This user said: \n\n""" + text_translated.text)
+        if text_translated.detected_source_lang != translation_language[0]:
+            await message.reply("""This user said: \n\n""" + text_translated.text)
 
 
 intents = discord.Intents.none()
