@@ -22,6 +22,7 @@ cur.execute("""CREATE TABLE IF NOT EXISTS languages (
 con.commit()
 
 translator = deepl.Translator(deepl_auth_key)
+deepl_usage = translator.get_usage()
 
 
 class MyClient(discord.Client):
@@ -45,14 +46,18 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        # Get the translation language of the server
-        cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
-        translation_language = cur.fetchone()
+        if not deepl_usage.any_limit_reached:
+            # Get the translation language of the server
+            cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
+            translation_language = cur.fetchone()
 
-        text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
+            text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
 
-        if text_translated.detected_source_lang != translation_language[0]:
-            await message.reply("""This user said: \n\n""" + text_translated.text)
+            if text_translated.detected_source_lang != translation_language[0]:
+                await message.reply("""This user said: \n\n""" + text_translated.text)
+        else:
+            await message.reply("""Sorry, I am not able to translate more this month :'(""")
+            print(f"Character usage: {deepl_usage.character}")
 
 
 intents = discord.Intents.none()
