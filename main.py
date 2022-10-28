@@ -46,20 +46,21 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
+        # Verify if a limit with DeepL has been reached
         if not deepl_usage.any_limit_reached:
             # Get the translation language of the server
             cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
             translation_language = cur.fetchone()
 
-            # Verify that the administrator have set up a language
-            if translation_language[0] in translator.get_source_languages():
+            # Verify that the administrators have set up a language
+            if translation_language:
                 text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
 
                 if text_translated.detected_source_lang != translation_language[0]:
-                    await message.reply("""This user said: \n\n""" + text_translated.text)
+                    await message.reply("{0} said in {1}: \n\n \"{2}\"".format(message.author, text_translated.detected_source_lang, text_translated.text))
         else:
-            await message.reply("""Sorry, I am not able to translate more this month :'(""")
-            print(f"Character usage: {deepl_usage.character}")
+            await message.reply("Sorry, I am not able to translate this at the moment :'(")
+            print("Character usage count: {0}".format(deepl_usage.character))
 
 
 intents = discord.Intents.none()
