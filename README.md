@@ -4,7 +4,7 @@
 
 ## Features
 * Select with a slash (/) command the language in which to translate the messages.
-* Automatically translate messages into a selected language by replying to the translated user's message.
+* Automatically translate messages into a selected language by replying to the user's original message.
 
 ## Other information
 This is a personal project made to train myself using Python and APIs. \
