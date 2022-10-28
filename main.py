@@ -51,10 +51,12 @@ class MyClient(discord.Client):
             cur.execute("SELECT language FROM languages WHERE guild_id = ?;", (message.guild.id,))
             translation_language = cur.fetchone()
 
-            text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
+            # Verify that the administrator have set up a language
+            if translation_language[0] in translator.get_source_languages():
+                text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
 
-            if text_translated.detected_source_lang != translation_language[0]:
-                await message.reply("""This user said: \n\n""" + text_translated.text)
+                if text_translated.detected_source_lang != translation_language[0]:
+                    await message.reply("""This user said: \n\n""" + text_translated.text)
         else:
             await message.reply("""Sorry, I am not able to translate more this month :'(""")
             print(f"Character usage: {deepl_usage.character}")
