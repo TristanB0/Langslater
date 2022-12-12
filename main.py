@@ -78,6 +78,7 @@ async def help(interaction: discord.Interaction):
     await interaction.response.send_message("""
     /help - Show this message \n
     /set_languages [string] - Set the languages for which the bot will NOT translate the message \n
+    /translate [string] - Send a message in a specific language
     Made by Tristan Bony --> https://www.tristanbony.me
     """, ephemeral=True)
 
@@ -117,6 +118,11 @@ async def set_language(interaction: discord.Interaction, language: Choice[str]):
     con.commit()
 
     await interaction.response.send_message("You have added {0} language.".format(language.name), ephemeral=True)
+
+
+@tree.command(name="translate", description="Send a translated text")
+async def translate(interaction: discord.Interaction, language: Choice[str], text: str):
+    await interaction.response.send_message("{0}".format(translator.translate_text(text, target_lang=language.value)))
 
 
 client.run(discord_token)
