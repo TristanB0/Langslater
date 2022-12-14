@@ -138,7 +138,7 @@ async def set_language(interaction: discord.Interaction, language: Choice[str]):
 
 @tree.command(name="translate", description="Send a translated text")
 async def translate(interaction: discord.Interaction, language: Choice[str], text: str):
-    await interaction.response.send_message("{0}".format(translator.translate_text(text, target_lang=language.value)))
+    await interaction.response.send_message("{0} wants to say something in {1}:\n{2}".format(interaction.user.mention, language.name, translator.translate_text(text, target_lang=language.value)))
 
 
 client.run(discord_token)
