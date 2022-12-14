@@ -1,11 +1,14 @@
+import datetime
 import sqlite3
-from os import getenv
+import logging
+from os import getenv, path, makedirs
 
 import discord
 import deepl
 from discord import app_commands
 from discord.app_commands import Choice
 from dotenv import load_dotenv
+
 
 load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
@@ -24,11 +27,17 @@ con.commit()
 translator = deepl.Translator(deepl_auth_key)
 deepl_usage = translator.get_usage()
 
+if not path.exists("logs"):
+    makedirs("logs")
+
 
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
         self.synced = False
+
+    async def setup_hook(self) -> None:
+        super.bg_task = self.loop.create_task(self.new_log())
 
     async def on_ready(self):
         await self.wait_until_ready()
@@ -36,11 +45,13 @@ class MyClient(discord.Client):
             await tree.sync()
             self.synced = True
         print("Logged on as {0}".format(self.user))
+        logging.log(logging.INFO, "Logged on")
 
         await self.change_presence(activity=discord.Game("to translate... /help"))
 
     async def on_disconnect(self):
         print("Disconnected from discord")
+        logging.log(logging.WARNING, "Disconnected from Discord")
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -61,6 +72,11 @@ class MyClient(discord.Client):
         else:
             await message.reply("Sorry, I am not able to translate this at the moment :'(")
             print("Character usage count: {0}".format(deepl_usage.character))
+            logging.log(logging.WARNING, "Character usage count: {0}".format(deepl_usage.character))
+
+    async def new_log(self):
+        now = datetime.datetime.now()
+        logging.basicConfig(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8", level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 
 intents = discord.Intents.none()
