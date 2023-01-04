@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import sqlite3
 import logging
@@ -75,8 +76,13 @@ class MyClient(discord.Client):
             logging.log(logging.WARNING, "Character usage count: {0}".format(deepl_usage.character))
 
     async def new_log(self):
+        """Make a new log file"""
         now = datetime.datetime.now()
+        # s_logger = logging.StreamHandler()
+        # f_logger = logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8")
         logging.basicConfig(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8", level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+        await asyncio.sleep(86400)     # Wait a day
+        # Things to do here
 
 
 intents = discord.Intents.none()
