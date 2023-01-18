@@ -105,6 +105,11 @@ class MyClient(discord.Client):
             print("Character usage count: {0}".format(deepl_usage.character))
             logging.log(logging.WARNING, "Character usage count: {0}".format(deepl_usage.character))
 
+    async def on_guild_remove(self, guild):
+        """Remove guild's users from the database when the guild is removed or the bot is kicked / banned"""
+        cur.execute("DELETE FROM languages WHERE guild_id = ?;", (guild.id,))
+        con.commit()
+
     async def new_log(self):
         """Make a new log file"""
         now = datetime.datetime.now()
