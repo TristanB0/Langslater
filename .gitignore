@@ -3,3 +3,4 @@
 *.db3
 .fleet
 .idea
+*.log
