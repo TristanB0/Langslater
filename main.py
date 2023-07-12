@@ -4,11 +4,17 @@ import sqlite3
 import logging
 from os import getenv, path, makedirs
 
+from langdetect import detect
 import discord
 import deepl
 from discord import app_commands
 from discord.app_commands import Choice
 from dotenv import load_dotenv
+
+with open(".env", 'w') as f:
+    # Add ENV keys from Discord and DeepL
+    f.write("DISCORD_TOKEN=")
+    f.write("DEEPL_AUTH_KEY")
 
 load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
@@ -94,9 +100,12 @@ class MyClient(discord.Client):
 
             # Verify that the administrators have set up a language
             if translation_language:
-                text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
+                text_language: str = detect(message.content)
+                text_language = text_language.upper()
 
-                if text_translated.detected_source_lang != translation_language[0]:
+                # if text_translated.detected_source_lang != translation_language[0]:
+                if text_language != translation_language[0]:    # To try
+                    text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
                     await message.reply(
                         "{0} said in {1}: \n\n \"{2}\"".format(message.author, text_translated.detected_source_lang,
                                                                text_translated.text))

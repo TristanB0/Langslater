@@ -14,6 +14,11 @@
 This is a personal project made to train myself using Python and APIs. \
 Do not hesitate to contribute with your ideas!
 
+It is intended to run on Python 3.11.3, and you will need to install the following packages:
+- discord
+- deepl
+- dotenv
+- langdetect
 
 ## License
 
