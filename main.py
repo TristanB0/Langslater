@@ -11,14 +11,16 @@ from discord import app_commands
 from discord.app_commands import Choice
 from dotenv import load_dotenv
 
-with open(".env", 'w') as f:
-    # Add ENV keys from Discord and DeepL
-    f.write("DISCORD_TOKEN=")
-    f.write("DEEPL_AUTH_KEY")
+if not path.exists("logs"):
+    makedirs("logs")
 
 load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
 deepl_auth_key = getenv("DEEPL_AUTH_KEY")
+
+if discord_token == None or deepl_auth_key == None:
+    logging.log(logging.ERROR, "Failed to get tokens")
+    exit()
 
 languages = [
     Choice(name="Bulgarian", value="BG"),
@@ -61,9 +63,6 @@ con.commit()
 
 translator = deepl.Translator(deepl_auth_key)
 deepl_usage = translator.get_usage()
-
-if not path.exists("logs"):
-    makedirs("logs")
 
 
 class MyClient(discord.Client):
