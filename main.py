@@ -1,15 +1,15 @@
 import asyncio
 import datetime
-import sqlite3
 import logging
-from os import getenv, path, makedirs
+import sqlite3
+from os import getenv, makedirs, path
 
-from langdetect import detect
-import discord
 import deepl
+import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from dotenv import load_dotenv
+from langdetect import detect
 
 if not path.exists("logs"):
     makedirs("logs")
