@@ -50,7 +50,7 @@ languages = [
     Choice(name="Swedish", value="SV"),
     Choice(name="Turkish", value="TR"),
     Choice(name="Ukrainian", value="UK")
-]
+]   # Size is limited to 25 choices
 
 con = sqlite3.connect("database.db3")
 cur = con.cursor()
@@ -78,13 +78,11 @@ class MyClient(discord.Client):
         if not self.synced:
             await tree.sync()
             self.synced = True
-        print("Logged on as {0}".format(self.user))
-        logging.log(logging.INFO, "Logged on")
+        logging.log(logging.INFO, "Logged on as {0}".format(self.user))
 
         await self.change_presence(activity=discord.Game("to translate... /help"))
 
     async def on_disconnect(self):
-        print("Disconnected from discord")
         logging.log(logging.WARNING, "Disconnected from Discord")
 
     async def on_message(self, message):
@@ -102,15 +100,13 @@ class MyClient(discord.Client):
                 text_language: str = detect(message.content)
                 text_language = text_language.upper()
 
-                # if text_translated.detected_source_lang != translation_language[0]:
-                if text_language != translation_language[0]:    # To try
+                if text_language != translation_language[0]:
                     text_translated = translator.translate_text(message.content, target_lang=translation_language[0])
                     await message.reply(
                         "{0} said in {1}: \n\n \"{2}\"".format(message.author, text_translated.detected_source_lang,
                                                                text_translated.text))
         else:
             await message.reply("Sorry, I am not able to translate this at the moment :'(")
-            print("Character usage count: {0}".format(deepl_usage.character))
             logging.log(logging.WARNING, "Character usage count: {0}".format(deepl_usage.character))
 
     async def on_guild_remove(self, guild):
@@ -121,13 +117,10 @@ class MyClient(discord.Client):
     async def new_log(self):
         """Make a new log file"""
         now = datetime.datetime.now()
-        # s_logger = logging.StreamHandler()
-        # f_logger = logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8")
-        logging.basicConfig(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8",
-                            level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',
-                            datefmt="%Y-%m-%d %H:%M:%S")
+        handlers = [logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8"), logging.StreamHandler()]
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',
+                            datefmt="%Y-%m-%d %H:%M:%S", handlers=handlers)
         await asyncio.sleep(86400)  # Wait a day
-        # Things to do here
 
 
 intents = discord.Intents.none()
@@ -143,10 +136,11 @@ tree = app_commands.CommandTree(client)
 @tree.command(name="help", description="Get help")
 async def help(interaction: discord.Interaction):
     await interaction.response.send_message("""
-    /help - Show this message \n
-    /set_languages [string] - Set the languages for which the bot will NOT translate the message \n
-    /translate [string] - Send a message in a specific language
-    Made by Tristan Bony --> https://www.tristanbony.me
+/help - Show this message
+/set_language [language] - Set the default target language. Messages in this language won't be translated
+/translate [language] [text] - Send a message in a specific language
+
+Made by Tristan Bony --> https://www.tristanbony.me
     """, ephemeral=True)
 
 
