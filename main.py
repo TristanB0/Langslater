@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime
 import logging
 import sqlite3
 from os import getenv, makedirs, path
@@ -114,12 +114,17 @@ class MyClient(discord.Client):
         cur.execute("DELETE FROM languages WHERE guild_id = ?;", (guild.id,))
         con.commit()
 
+        logging.log(logging.DEBUG, "Bot removed from {0}".format(guild.id))
+
     async def new_log(self):
         """Make a new log file"""
-        now = datetime.datetime.now()
+        now = datetime.now()
         handlers = [logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8"), logging.StreamHandler()]
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',
                             datefmt="%Y-%m-%d %H:%M:%S", handlers=handlers)
+        
+        logging.log(logging.DEBUG, "Created a new log file")
+
         await asyncio.sleep(86400)  # Wait a day
 
 
@@ -151,12 +156,16 @@ async def set_language(interaction: discord.Interaction, language: Choice[str]):
                 (interaction.guild.id, language.value))
     con.commit()
 
+    logging.log(logging.DEBUG, "Guild {0} setted up a language".format(interaction.guild.id))
+
     await interaction.response.send_message("You have added {0} language.".format(language.name), ephemeral=True)
 
 
 @tree.command(name="translate", description="Send a translated text")
 @app_commands.choices(language=languages)
 async def translate(interaction: discord.Interaction, language: Choice[str], text: str):
+    logging.log(logging.DEBUG, "Command translate was called")
+
     await interaction.response.send_message(
         "{0} wants to say something in {1}:\n{2}".format(interaction.user.mention, language.name,
                                                          translator.translate_text(text, target_lang=language.value)))
