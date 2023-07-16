@@ -18,7 +18,7 @@ load_dotenv()
 discord_token = getenv("DISCORD_TOKEN")
 deepl_auth_key = getenv("DEEPL_AUTH_KEY")
 
-if discord_token == None or deepl_auth_key == None:
+if discord_token is None or deepl_auth_key is None:
     logging.log(logging.ERROR, "Failed to get tokens")
     exit()
 
@@ -119,7 +119,8 @@ class MyClient(discord.Client):
     async def new_log(self):
         """Make a new log file"""
         now = datetime.now()
-        handlers = [logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")), encoding="utf-8"), logging.StreamHandler()]
+        handlers = [logging.FileHandler(filename="logs/{0}.log".format(now.strftime("%Y-%m-%d %H:%M:%S")),
+                                        encoding="utf-8"), logging.StreamHandler()]
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',
                             datefmt="%Y-%m-%d %H:%M:%S", handlers=handlers)
         
